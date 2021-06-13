@@ -1,0 +1,11 @@
+# git
+/.git
+
+# JetBrains IDE
+/.idea
+__pycache__/
+
+# The Project
+/test*
+/*.json
+/*.xls*

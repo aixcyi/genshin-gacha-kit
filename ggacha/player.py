@@ -7,9 +7,9 @@ from urllib.parse import urlparse, urlencode, parse_qsl
 
 from requests import get
 
-from gacha import GachaWish
-from gacha.common.hash import sm3u, sm3r
-from gacha.common.throwable import GenshinBaseException
+from ggacha import GachaWish
+from ggacha.common.hash import sm3u, sm3r
+from ggacha.common.throwable import GenshinBaseException
 
 
 class CollectingError(GenshinBaseException):

@@ -6,5 +6,5 @@
 - License: MIT
 """
 
-from gacha.wish import GachaWish
-from gacha.player import GachaPlayer
+from ggacha.wish import GachaWish
+from ggacha.player import GachaPlayer

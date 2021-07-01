@@ -1,7 +1,7 @@
 from xlsxwriter import Workbook
 
-from gacha import GachaPlayer
-from gacha.common.throwable import GenshinBaseException
+from ggacha import GachaPlayer
+from ggacha.common.throwable import GenshinBaseException
 
 
 def save_as_xlsx(obj: GachaPlayer, file: str):

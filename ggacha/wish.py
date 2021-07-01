@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import List, Dict
 
-from gacha.common.throwable import GenshinBaseException
-from gacha.common.time import str_to_stamp
-from gacha.res import WISH_HISTORIES
+from ggacha.common.throwable import GenshinBaseException
+from ggacha.common.time import str_to_stamp
+from ggacha.res import WISHES_HISTORY
 
 
 class MultiRegionError(GenshinBaseException):
@@ -61,8 +61,8 @@ class GachaWish:
         }[self.wish_type]
         """五星角色/物品必定抽出的保底抽取次数。"""
 
-        if self.wish_type in WISH_HISTORIES:
-            self.histories = WISH_HISTORIES[self.wish_type]
+        if self.wish_type in WISHES_HISTORY:
+            self.histories = WISHES_HISTORY[self.wish_type]
             """当前祈愿卡池的所有历史信息。"""
 
             # 将时间字符串转换为时间戳小数，方便方法使用。

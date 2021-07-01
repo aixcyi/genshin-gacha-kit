@@ -1,8 +1,8 @@
 from os.path import isfile
 from datetime import datetime
 
-from gacha import GachaPlayer
-from gacha.ext import save_as_xlsx
+from ggacha import GachaPlayer
+from ggacha.ext import save_as_xlsx
 
 
 def handler_example(code: int, message: str, **kwargs):

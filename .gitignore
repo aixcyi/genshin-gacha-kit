@@ -9,3 +9,4 @@ __pycache__/
 /test*
 /*.json
 /*.xls*
+*.txt

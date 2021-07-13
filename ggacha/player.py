@@ -26,7 +26,11 @@ class MultiUIDError(GenshinBaseException):
 
     def __init__(self, uid1, uid2):
         super(MultiUIDError, self).__init__(
-            self.__doc__ + '：%s 与 %s' % (uid1, uid2)
+            '{tip}：{uid_a} 与 {uid_b}'.format(
+                tip=self.__doc__,
+                uid_a=uid1,
+                uid_b=uid2,
+            ),
         )
 
 
@@ -231,13 +235,21 @@ class GachaPlayer:
         content = http_get_json(
             url='https://hk4e-api.mihoyo.com/event/gacha_info/api/getGachaLog?' + self._url_part
         )
-        # content == {
+        # content = {
         #     "retcode": 0,
         #     "message": "OK",
-        #     "data": {"page": "0", "size": "6", "total": "0", "list": [], "region": "cn_gf01"}
+        #     "data": {
+        #         "page": "0",
+        #         "size": "6",
+        #         "total": "0",
+        #         "list": [],
+        #         "region": "cn_gf01"
+        #     }
         # }
         if content['retcode'] != 0:
-            raise CollectingError('请求数据失败：(%s) %s' % (content['retcode'], content['message']))
+            raise CollectingError('请求数据失败：(%s) %s' % (
+                content['retcode'], content['message']
+            ))
 
         # ################################
         # 获取当前卡池类型：
@@ -259,7 +271,9 @@ class GachaPlayer:
         #     }
         # }
         if content['data'] is None:
-            raise CollectingError('获取卡池类型失败。(%s) %s' % (content['retcode'], content['message']))
+            raise CollectingError('获取卡池类型失败。(%s) %s' % (
+                content['retcode'], content['message']
+            ))
         wish_map = content['data']['gacha_type_list']
         for i in range(len(self.wishes)):
             for j in wish_map:
@@ -268,7 +282,12 @@ class GachaPlayer:
                     break
         self._call_handler(self.PROCESS_END_INIT, '初始化完毕')
 
-    def _build_records_api(self, wish_type: str, size: int, page: int, end_id: str) -> str:
+    def _build_records_api(self,
+                           wish_type: str,
+                           size: int,
+                           page: int,
+                           end_id: str
+                           ) -> str:
         """构造查询抽卡记录的GET请求的地址。"""
         url = 'https://hk4e-api.mihoyo.com/event/gacha_info/api/getGachaLog?'
         params = dict(**self._url_params)  # 避免直接修改日志文件里的URL的参数
@@ -292,22 +311,29 @@ class GachaPlayer:
                     end_id=end_id
                 )
             )
-            # content == {
+            # content = {
             #     "retcode": 0,
             #     "message": "OK",
-            #     "data": {"page": "0", "size": "20", "total": "0", "list": [原始数据,...], "region": "cn_gf01"}
-            # }
-            # 原始数据 == {
-            #     'uid': '玩家id',
-            #     'gacha_type': '200',
-            #     'item_id': '',
-            #     'count': '1',
-            #     'time': '2021-03-21 13:00:00',
-            #     'name': '魔导绪论',
-            #     'lang': 'zh-cn',
-            #     'item_type': '武器',
-            #     'rank_type': '3',
-            #     'id': '19位字符串，抽卡记录的ID'
+            #     "data": {
+            #         "page": "0",
+            #         "size": "20",
+            #         "total": "0",
+            #         "list": [
+            #             {
+            #                 "uid": "玩家id",
+            #                 "gacha_type": "200",
+            #                 "item_id": "",
+            #                 "count": "1",
+            #                 "time": "2021-01-21 18:08:54",
+            #                 "name": "芭芭拉",
+            #                 "lang": "zh-cn",
+            #                 "item_type": "角色",
+            #                 "rank_type": "4",
+            #                 "id": "19位阿拉伯数字，抽卡记录的ID"
+            #             }
+            #         ],
+            #         "region": "cn_gf01"
+            #     }
             # }
             if content['data']['list'] is None:
                 break
@@ -331,8 +357,8 @@ class GachaPlayer:
         self.create = self.modify if self.create == '' else self.create
         for i in range(len(self.wishes)):
             self._call_handler(
-                self.PROCESS_GET_WISH_RECORDS,
-                '获取【%s】的记录' % self.wishes[i].wish_name,
+                code=self.PROCESS_GET_WISH_RECORDS,
+                message='获取【%s】的记录' % self.wishes[i].wish_name,
                 wish=self.wishes[i].wish_name,
             )
             # 获取并匿名化处理数据：（因为原始数据是从新到旧的，所以直接逆序遍历）

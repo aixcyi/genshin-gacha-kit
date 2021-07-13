@@ -2,6 +2,7 @@ import os
 from datetime import datetime, timedelta
 from json import loads, load, dumps
 from json.decoder import JSONDecodeError
+from random import random
 from time import sleep
 from typing import Callable
 from urllib.parse import urlparse, urlencode, parse_qsl
@@ -283,7 +284,6 @@ class GachaPlayer:
         end_id = '0'
         result = []
         while True:
-            self._call_handler(self.PROCESS_GET_RECORD_PAGE, '获取第 %i 页记录' % page, page=page)
             content = http_get_json(
                 url=self._build_records_api(
                     wish_type=wish_type,
@@ -317,7 +317,12 @@ class GachaPlayer:
                 result.append(item)
             end_id = content['data']['list'][-1]['id']
             page += 1
-            sleep(1.171)
+            self._call_handler(
+                code=self.PROCESS_GET_RECORD_PAGE,
+                message='获取第 %i 页记录' % page,
+                page=page,
+            )
+            sleep(random() * 2)
         return result
 
     def collect(self) -> None:

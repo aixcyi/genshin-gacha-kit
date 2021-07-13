@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta
 from json import loads, load, dumps
+from json.decoder import JSONDecodeError
 from time import sleep
 from typing import Callable
 from urllib.parse import urlparse, urlencode, parse_qsl
@@ -402,7 +403,10 @@ class GachaPlayer:
         :returns: 抽卡记录的采集器针对的游戏版本。失败返回空字符串。"""
         ret = ''
         with open(file, 'r', encoding='UTF-8') as f:
-            obj = load(f)
+            try:
+                obj = load(f)
+            except JSONDecodeError:
+                obj = dict()
             if type(obj) is not dict:
                 return ret
             if 'collector' in obj:

@@ -67,7 +67,7 @@ class GachaPlayer:
     """
 
     _PAGE_SIZE_MAX = 20
-    """抽卡记录每页最大数量"""
+    """抽卡记录每页最大数量。"""
 
     _UTCTIME_F = '%Y-%m-%d %H:%M:%S UTC+0'
     """collector 属性的时间字符串格式。"""
@@ -122,12 +122,9 @@ class GachaPlayer:
             GachaWish(gacha_type='301'),  # 角色活动祈愿
             GachaWish(gacha_type='302'),  # 武器活动祈愿
         ]
-        """所有祈愿卡池。
-        
-        :type: Tuple[GachaWish]
-        """
+        """所有祈愿卡池。"""
 
-        self.multi_uid = allow_multi_uid
+        self.multi_uid: bool = allow_multi_uid
         """是否允许合并多个UID的数据。若为 ``True`` ，则 ``uid`` 字段无效。"""
 
         if file != '':  # 使用文件直接新建本类。
@@ -195,7 +192,7 @@ class GachaPlayer:
         # ################################
         # 查找本地output_log.txt：
         self._call_handler(self.PROCESS_READ_LOG, '正在查找本地日志')
-        assert 'USERPROFILE' in os.environ, '系统变量中没有配置 USERPROFILE'
+        assert 'USERPROFILE' in os.environ, 'Windows 系统变量中没有配置 USERPROFILE'
         path_t = os.path.join(
             os.environ['USERPROFILE'],
             r'AppData\LocalLow\miHoYo\*\output_log.txt'

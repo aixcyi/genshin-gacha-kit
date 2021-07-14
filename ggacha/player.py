@@ -294,8 +294,11 @@ class GachaPlayer:
         params['end_id'] = end_id
         return url + urlencode(params)
 
-    def _collect_one(self, wish_type: str) -> list:
-        """获取某一祈愿卡池的抽卡记录。"""
+    def collect_one(self, wish_type: str) -> list:
+        """获取某一祈愿卡池的所有抽卡记录。
+
+        :param wish_type: 祈愿卡池类型。
+        """
         page = 1
         end_id = '0'
         result = []
@@ -359,7 +362,7 @@ class GachaPlayer:
                 wish=self.wishes[i].wish_name,
             )
             # 获取并匿名化处理数据：（因为原始数据是从新到旧的，所以直接逆序遍历）
-            page = self._collect_one(self.wishes[i].wish_type)[::-1]
+            page = self.collect_one(self.wishes[i].wish_type)[::-1]
             for j in range(len(page)):
                 self.uid = page[j].pop('uid')
                 page[j].pop('gacha_type')

@@ -141,7 +141,7 @@ class GachaPlayer:
         # 从日志里获取到的URL的GET请求参数。
 
     def __repr__(self) -> str:
-        r_ws = [repr(wish) for wish in self.wishes]
+        r_ws = [repr(self.wishes[i]) for i in range(len(self.wishes))]
         return '<%s(v%s) 创建：%s，修改：%s，语言：%s，地区：%s，抽卡记录：%s>' % (
             self.__class__.__name__,
             GachaPlayer.VERSION,

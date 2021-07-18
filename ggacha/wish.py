@@ -148,7 +148,7 @@ class GachaWish:
         self.records.sort(key=lambda e: (e['time'], e['RID']))
 
     def t2stamp(self):
-        """将卡池内所有抽卡记录的抽卡时间字符串转换为时间戳（小数），以方便处理。
+        """将当前卡池内所有抽卡记录的抽卡时间字符串转换为时间戳（小数），以方便处理。
 
         - 请确保 ``time`` 字段存在。
         - 如果 ``stamp`` 字段已经存在，则会被覆盖。
@@ -160,7 +160,7 @@ class GachaWish:
             ).timestamp()
 
     def stamp2t(self):
-        """将卡池内所有抽卡记录的时间戳（小数）转换为时间字符串。
+        """将当前卡池内所有抽卡记录的时间戳（小数）转换为时间字符串。
 
         - 请确保 ``stamp`` 字段存在。
         - 如果 ``time`` 字段已经存在，则会被覆盖。
@@ -173,10 +173,11 @@ class GachaWish:
             )
 
     def count(self, language: str = 'zh-cn') -> dict:
-        """统计角色/武器在卡池中up的次数。
+        """统计角色/武器在当前卡池中up的次数。
 
         :param language: 角色/武器名称的语言。此参数就是 ``ITEMS`` 的键名。
         :return: 返回一个字典，键为角色/武器的名称，值为up的累计次数。
+                 如果当前卡池不存在up，则返回空字典。
         """
         try:
             id_list = dict(zip(ITEMS.keys(), [0] * len(ITEMS)))

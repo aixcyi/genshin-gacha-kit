@@ -108,7 +108,7 @@ class GachaWish:
             return result
 
         if type(other) is list:
-            # 如果与列表相加，由于缺失地区，所以直接合并得了：
+            # 如果与列表相加，由于缺少地区，所以直接合并得了：
             self.records = merge(self.records, other)
 
         elif type(other) is self.__class__:
@@ -139,35 +139,50 @@ class GachaWish:
         """
         self.records.sort(key=lambda e: (e['time'], e['RID']))
 
-    def stamp(self):
-        """为当前卡池的抽卡记录添加时间戳（小数），以方便处理。如果时间戳字段已经存在，则更新时间戳。"""
+    def t2stamp(self):
+        """将卡池内所有抽卡记录的抽卡时间字符串转换为时间戳（小数），以方便处理。
+
+        - 请确保 ``time`` 字段存在。
+        - 如果 ``stamp`` 字段已经存在，则会被覆盖。
+        """
         for i in range(len(self.records)):
             self.records[i]['stamp'] = datetime.strptime(
-                date_string=self.records[i]['time'],
+                date_string=self.records[i].pop('time'),
                 format='%Y-%m-%d %H:%M:%S',
             ).timestamp()
 
-    # def is_up(self, moment: Union[str, float, int], item_name: str) -> bool:
-    #     """根据时间判断某个角色（某种武器）在当前祈愿卡池中抽取概率是否提升（up）。
-    #
-    #     :param moment: 时间点。可以是小数或整数的时间戳，
-    #                    也可以是格式为 YYYY-mm-dd HH:MM:SS 的时间字符串。
-    #     :param item_name: 某个角色或某种武器的名称。
-    #                       名称不应该包括前后缀，比如 “「逃跑的太阳·可莉」” 名称应为 “可莉” 。
-    #                       名称的语言文字可以是任意的，因为这个取决于卡池历史记录是否包含这种文字的名称。
-    #     """
-    #     if type(moment) is str:
-    #         moment = str_to_stamp(moment)
-    #     try:
-    #         for item in self.histories:
-    #             if not (item['stamp'][0] <= moment <= item['stamp'][1]):
-    #                 continue
-    #             if item_name in item['items']['up']:
-    #                 return True
-    #         else:
-    #             return False
-    #     except (KeyError, AttributeError):
-    #         return False
+    def stamp2t(self):
+        """将卡池内所有抽卡记录的时间戳（小数）转换为时间字符串。
+
+        - 请确保 ``stamp`` 字段存在。
+        - 如果 ``time`` 字段已经存在，则会被覆盖。
+        """
+        for i in range(len(self.records)):
+            self.records[i]['time'] = datetime.fromtimestamp(
+                self.records[i].pop('stamp')
+            ).strftime(
+                fmt='%Y-%m-%d %H:%M:%S',
+            )
+
+    def search(self, item_name: str, moment: float = None) -> list:
+        """根据时间判断某个角色（某件武器）在哪些祈愿卡池中抽取概率提升（up）。
+
+        :param moment: 时间点。是一个时间戳小数。
+        :param item_name: 某个角色或某种武器的名称。
+                          名称不应该包括前后缀，比如 “「逃跑的太阳·可莉」” 名称应为 “可莉” 。
+                          名称的语言文字可以是任意的，因为这个取决于卡池历史记录是否包含这种文字的名称。
+        """
+        history_list = list()
+        try:
+            for item in self.histories:
+                if moment is not None:
+                    if not (item['stamp'][0] <= moment <= item['stamp'][1]):
+                        continue
+                if item_name in item['items']['up']:
+                    history_list.append(item)
+        except (KeyError, AttributeError):
+            pass
+        return history_list
 
     def group_by_time(self) -> Dict[str, List[dict]]:
         """将当前卡池的抽卡记录按照 **抽卡时间** 分组。

@@ -172,6 +172,27 @@ class GachaWish:
                 fmt='%Y-%m-%d %H:%M:%S',
             )
 
+    def count(self, language: str = 'zh-cn') -> dict:
+        """统计角色/武器在卡池中up的次数。
+
+        :param language: 角色/武器名称的语言。此参数就是 ``ITEMS`` 的键名。
+        :return: 返回一个字典，键为角色/武器的名称，值为up的累计次数。
+        """
+        try:
+            id_list = dict(zip(ITEMS.keys(), [0] * len(ITEMS)))
+            histories = []
+            result = dict()
+            for item in WISHES_HISTORY[self.wish_type]:
+                histories += item['items']['up']
+            for history in histories:
+                id_list[history] += 1
+            for k in id_list:
+                if id_list[k] > 0:
+                    result[ITEMS[k][language]] = id_list[k]
+            return dict(sorted(result.items(), key=lambda i: (i[1], i[0]), reverse=True))
+        except KeyError:
+            return {}
+
     def search(self, item_name: str, moment: float = None) -> list:
         """根据时间判断某个角色（某件武器）在哪些祈愿卡池中抽取概率提升（up）。
 

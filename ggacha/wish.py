@@ -3,7 +3,7 @@ from typing import List, Dict
 
 from ggacha.common.throwable import GenshinBaseException
 from ggacha.common.time import str_to_stamp
-from ggacha.res import WISHES_HISTORY
+from ggacha.res import WISHES_HISTORY, ITEMS
 
 
 class MultiRegionError(GenshinBaseException):
@@ -65,13 +65,21 @@ class GachaWish:
             self.histories = WISHES_HISTORY[self.wish_type]
             """当前祈愿卡池的所有历史信息。"""
 
-            # 将时间字符串转换为时间戳小数，方便方法使用。
+            # 根据时间字符串添加时间戳，方便各方法利用。
             for i in range(len(self.histories)):
-                # 这里分别是开始时间和结束时间：
+                # 这里分别是祈愿卡池的开始时间和结束时间：
                 self.histories[i]['stamp'] = (
                     str_to_stamp(self.histories[i]['time'][0]),
                     str_to_stamp(self.histories[i]['time'][1]),
                 )
+
+            # 将项目自定义编号替换为角色/武器的名称。
+            for i in range(len(self.histories)):
+                name_list = list()
+                for item_id in self.histories[i]['items']['up']:
+                    name_list += ITEMS[item_id].values()
+                self.histories[i]['items']['up'] = \
+                    tuple(set(name_list))  # 利用集合的特性去重
 
     def __repr__(self) -> str:
         return '<%s(%s) 记录数量：%i>' % (

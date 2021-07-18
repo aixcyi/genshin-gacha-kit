@@ -31,7 +31,7 @@
   "1330": {"zh-cn": "罗莎莉亚", "zh-tw": "蘿莎莉亞", "en-us": "Rosaria", "ja-jp": "ロサリア", "ko-kr": "로자리아"},
   "2140": {"zh-cn": "烟绯", "zh-tw": "煙緋", "en-us": "Yanfei", "ja-jp": "煙緋", "ko-kr": "연비"},
   "1328": {"zh-cn": "优菈", "zh-tw": "優菈", "en-us": "Eula", "ja-jp": "エウルア", "ko-kr": "유라"},
-  "3618": {"zh-cn": "枫原万叶", "zh-tw": "楓原萬葉", "en-us": "Kaedehara Kazuha", "ja-jp": "", "ko-kr": ""},
+  "3618": {"zh-cn": "枫原万叶", "zh-tw": "楓原萬葉", "en-us": "Kaedehara Kazuha", "ja-jp": "楓原万葉", "ko-kr": "카에데하라 카즈하"},
 
   "1C10": {"zh-cn": "冷刃", "zh-tw": "冷刃", "ja-jp": "冷刃", "ko-kr": "차가운 칼날", "en-us": "Cool Steel"},
   "1C80": {"zh-cn": "黎明神剑", "zh-tw": "黎明神劍", "ja-jp": "黎明の神剣", "ko-kr": "여명신검", "en-us": "Harbinger of Dawn"},
@@ -45,7 +45,7 @@
   "1A40": {"zh-cn": "天空之刃", "zh-tw": "天空之刃", "ja-jp": "天空の刃", "ko-kr": "천공의 검", "en-us": "Skyward Blade"},
   "1A10": {"zh-cn": "斫峰之刃", "zh-tw": "斫峰之刃", "ja-jp": "斬山の刃", "ko-kr": "참봉의 칼날", "en-us": "Summit Shaper"},
   "1A70": {"zh-cn": "磐岩结绿", "zh-tw": "磐岩結綠", "ja-jp": "磐岩結緑", "ko-kr": "반암결록", "en-us": "Primordial Jade Cutter"},
-  "1A50": {"zh-cn": "苍古自由之誓", "zh-tw": "蒼古自由之誓", "ja-jp": "北風のプレシャス", "ko-kr": "보레아스의 조숙", "en-us": "Freedom-Sworn"},
+  "1A50": {"zh-cn": "苍古自由之誓", "zh-tw": "蒼古自由之誓", "ja-jp": "蒼古なる自由への誓い", "ko-kr": "보레아스의 조숙", "en-us": "Freedom-Sworn"},
 
   "2C30": {"zh-cn": "铁影阔剑", "zh-tw": "鐵影闊劍", "ja-jp": "鉄影段平", "ko-kr": "강철의 그림자", "en-us": "Ferrous Shadow"},
   "2C50": {"zh-cn": "沐浴龙血的剑", "zh-tw": "沐浴龍血的劍", "ja-jp": "龍血を浴びた剣", "ko-kr": "드래곤 블러드 소드", "en-us": "Bloodtainted Greatsword"},
@@ -91,7 +91,7 @@
   "5C30": {"zh-cn": "反曲弓", "zh-tw": "反曲弓", "ja-jp": "リカーブボウ", "ko-kr": "곡궁", "en-us": "Recurve Bow"},
   "5C70": {"zh-cn": "弹弓", "zh-tw": "彈弓", "ja-jp": "弾弓", "ko-kr": "탄궁", "en-us": "Slingshot"},
   "5C81": {"zh-cn": "信使", "zh-tw": "信使", "ja-jp": "文使い", "ko-kr": "전령", "en-us": "Messenger"},
-  "5B40": {"zh-cn": "西风猎弓", "zh-tw": "西風獵弓", "ja-jp": "西風猟弓", "ko-kr": "Favonius Warbow", "en-us": "Favonius Warbow"},
+  "5B40": {"zh-cn": "西风猎弓", "zh-tw": "西風獵弓", "ja-jp": "西風猟弓", "ko-kr": "페보니우스 활", "en-us": "Favonius Warbow"},
   "5B50": {"zh-cn": "绝弦", "zh-tw": "絕弦", "ja-jp": "絶弦", "ko-kr": "절현", "en-us": "The Stringless"},
   "5B41": {"zh-cn": "祭礼弓", "zh-tw": "祭禮弓", "ja-jp": "祭礼の弓", "ko-kr": "제례활", "en-us": "Sacrificial Bow"},
   "5B10": {"zh-cn": "弓藏", "zh-tw": "弓藏", "ja-jp": "弓蔵", "ko-kr": "녹슨 활", "en-us": "Rust"},

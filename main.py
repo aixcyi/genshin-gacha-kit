@@ -27,13 +27,10 @@ def handler_example(code: int, message: str, **kwargs):
 
 # 保存最近六个月的抽卡记录：
 print('今天能获取的最早的抽卡记录的时间是：', GachaPlayer.earliest())
-branch = GachaPlayer(allow_multi_uid=False, handler=handler_example)
+branch = GachaPlayer(allow_multi_uid=None, handler=handler_example)
 branch.init()
 branch.collect()
-branch.dump(
-    file='./raw_%s_%s.json' % (branch.uid, datetime.now().strftime('%Y%m%d%H%M%S')),
-    save_uid=True
-)
+branch.dump('./raw_%s_%s.json' % (branch.uid, datetime.now().strftime('%Y-%m%d-%H%M%S')))
 
 # 将获取的记录当作支线，合并到总线中，形成一个完整版本：
 path = 'ggr_%s.json' % branch.uid
@@ -42,7 +39,7 @@ if not isfile(path):
         f.write(b'{}')
 master = GachaPlayer(allow_multi_uid=True, file=path)
 master += branch
-master.dump(path, save_uid=True)
+master.dump(path)
 
 # 为完整的抽卡记录生成Excel表格：
 save_as_xlsx(master, './ggr_%s.xlsx' % master.uid)

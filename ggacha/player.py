@@ -4,34 +4,13 @@ from json import loads, load, dumps
 from json.decoder import JSONDecodeError
 from random import random
 from time import sleep
-from typing import Callable
+from typing import Callable, Union
 from urllib.parse import urlparse, urlencode, parse_qsl
 
 from requests import get
 
 from ggacha import GachaWish
-from ggacha.common.hash import sm3u, sm3r
-from ggacha.common.throwable import GenshinBaseException
-
-
-class CollectingError(GenshinBaseException):
-    """获取祈愿卡池抽取记录时触发的错误。"""
-
-    def __init__(self, *args):
-        super(CollectingError, self).__init__(*args)
-
-
-class MultiUIDError(GenshinBaseException):
-    """不允许合并两段不同UID的抽卡记录"""
-
-    def __init__(self, uid1, uid2):
-        super(MultiUIDError, self).__init__(
-            '{tip}：{uid_a} 与 {uid_b}'.format(
-                tip=self.__doc__,
-                uid_a=uid1,
-                uid_b=uid2,
-            ),
-        )
+from ggacha.throwable import CollectingError, MultiRegionError, MultiLanguageError, MultiUIDError
 
 
 def http_get_json(url: str, encoding: str = 'UTF-8'):
@@ -58,13 +37,6 @@ JSON_DUMP_TEMPLATE = '''{
 
 
 class GachaPlayer:
-    """原神祈愿抽取记录数据类。
-
-    本类是多个祈愿卡池的抽取记录的存取载体，
-    提供面向玩家的抽卡记录获取、载入、导出、排序与合并等功能。
-
-    目前采用读取日志的方式获取抽卡记录。
-    """
 
     _PAGE_SIZE_MAX = 20
     """抽卡记录每页最大数量。"""
@@ -88,14 +60,66 @@ class GachaPlayer:
     PROCESS_END_DOWNLOAD = 0x002F
 
     def __init__(self,
-                 allow_multi_uid: bool = False,
+                 file: str = '',
                  handler: Callable = None,
-                 file: str = '') -> None:
+                 allow_multi_region: Union[bool, None] = False,
+                 allow_multi_language: Union[bool, None] = False,
+                 allow_multi_uid: Union[bool, None] = False,
+                 ) -> None:
         """
-        :param allow_multi_uid: 是否允许合并不同玩家（UID）的数据。False表示不允许。
-        :param handler: 可选。接收数据获取进度通知的函数。
+        原神祈愿抽取记录数据类。
+
+        本类是多个祈愿卡池的抽取记录的存取载体，
+        提供面向玩家的抽卡记录获取、载入、导出、排序与合并等功能。
+
+        目前采用读取日志的方式获取抽卡记录。
+
+        TNF策略：在合并中遇到不同的信息时，``True`` 表示允许覆盖，``False`` 表示抛出错误，
+        ``None`` 表示不覆盖、保留原样。该策略的默认值是 ``None`` 。
+
         :param file: 可选。含有抽卡记录数据的JSON文件的文件地址。
                      当提供了本参数时，将直接依据文件内容构造对象。
+        :param handler: 可选。接收数据获取进度通知的函数。
+        :param allow_multi_region: 是否允许合并不同地区的抽卡数据。
+                                   空字符串也视为一种地区。遵循“TNF策略”。
+        :param allow_multi_language: 是否允许合并用不同语言文字记录的抽卡数据。
+                                     空字符串也视为一种语言文字。遵循“TNF策略”。
+        :param allow_multi_uid: 是否允许合并不同玩家（UID）的数据。
+                                空字符串也视为一个UID。遵循“TNF策略”。
+        """
+
+        self.region = ''
+        """游戏地区的缩写字符串。
+
+        - 游戏地区决定了获取到的抽卡记录的时间的时区，错误的游戏地区会解读出错误的时间。
+        - 详见游戏内祈愿面板的说明。
+        """
+
+        self.language = ''
+        """抽卡记录数据的语言文字。"""
+
+        self.uid = ''
+        """玩家的游戏账号号码。"""
+
+        self.multi_region = allow_multi_region
+        """是否允许合并不同地区的抽卡数据。
+        
+        - 空字符串也视为一种地区。
+        - 遵循“TNF策略”。
+        """
+
+        self.multi_language = allow_multi_language
+        """是否允许合并用不同语言文字记录的抽卡数据。
+        
+        - 空字符串也视为一种语言。
+        - 遵循“TNF策略”。
+        """
+
+        self.multi_uid = allow_multi_uid
+        """是否允许合并不同玩家（UID）的数据。
+        
+        - 空字符串也视为一个玩家。
+        - 遵循“TNF策略”。
         """
 
         self.create = ''
@@ -104,18 +128,6 @@ class GachaPlayer:
         self.modify = ''
         """记录数据的修改时间（字符串），时区固定为UTC+0。该时间代表合并时两对创建修改时间中最晚的那个时间。"""
 
-        self.uid = ''
-        """经过散列运算的玩家游戏UID，长度为10个字符。"""
-
-        self.language = ''
-        """抽卡记录数据的语言文字。"""
-
-        self.region = ''
-        """游戏地区的缩写。
-        
-        游戏地区决定了获取到的抽卡记录的时间的时区。详见游戏内祈愿面板的说明。
-        """
-
         self.wishes = [
             GachaWish(gacha_type='100'),  # 新手祈愿
             GachaWish(gacha_type='200'),  # 常驻祈愿
@@ -123,9 +135,6 @@ class GachaPlayer:
             GachaWish(gacha_type='302'),  # 武器活动祈愿
         ]
         """所有祈愿卡池。"""
-
-        self.multi_uid: bool = allow_multi_uid
-        """是否允许合并多个UID的数据。若为 ``True`` ，则 ``uid`` 字段无效。"""
 
         if file != '':  # 使用文件直接新建本类。
             self.load(file)
@@ -169,6 +178,22 @@ class GachaPlayer:
                 raise MultiUIDError(self.uid, other.uid)
         for i in range(len(self.wishes)):
             self.wishes[i] += other.wishes[i]
+
+        if self.region != other.region:
+            if self.multi_region is True:
+                self.region = other.region
+            elif self.multi_region is False:
+                raise MultiRegionError(self.region, other.region)
+        if self.language != other.language:
+            if self.multi_language is True:
+                self.language = other.language
+            elif self.multi_language is False:
+                raise MultiLanguageError(self.language, other.language)
+        if self.uid != other.uid:
+            if self.multi_uid is True:
+                self.uid = other.uid
+            elif self.multi_uid is False:
+                raise MultiUIDError(self.uid, other.uid)
 
         self.modify = max(self.create, self.modify, other.create, other.modify)
         return self
@@ -342,12 +367,12 @@ class GachaPlayer:
             for item in content['data']['list']:
                 result.append(item)
             end_id = content['data']['list'][-1]['id']
-            page += 1
             self._call_handler(
                 code=self.PROCESS_GET_RECORD_PAGE,
                 message='获取第 %i 页记录' % page,
                 page=page,
             )
+            page += 1
             sleep(random() * 2)
         return result
 
@@ -369,25 +394,22 @@ class GachaPlayer:
                 page[j].pop('item_id')
                 page[j].pop('count')
                 page[j].pop('lang')
-                page[j]['RID'] = sm3r(page[j].pop('id'))
             self.wishes[i].records = page
-        self.uid = sm3u(self.uid)
         self._call_handler(self.PROCESS_END_DOWNLOAD, '记录获取完毕')
 
-    def dump(self, file: str, save_uid: bool = False) -> None:
+    def dump(self, file: str) -> None:
         """将获取到的抽卡记录保存为紧凑但兼有换行、易于浏览的JSON格式文件。
 
         :param file: 具体的文件地址。
-        :param save_uid: 是否保存加密过的uid。
-                         uid对于海量数据分析并无作用，如需去除重复，请同时使用RID与时间两个字段。
         """
+
+        # json_part_wishes = dumps(self.map_wishes(), ensure_ascii=False)
 
         # 这个函数只是为了dump一份格式好看一点的json文件而已，不到万不得已最好不要改动。
         # 缩进采用两个空格。
         # 用[:-2]是为了去掉多余的逗号以符合JSON语法。
 
         # ################################
-        # json_part_wishes = dumps(self.map_wishes(), ensure_ascii=False)
         json_part_wishes = ''
         wishes = self.map_wishes()
         for item in wishes:
@@ -418,7 +440,7 @@ class GachaPlayer:
             GachaPlayer.VERSION,
             self.create,
             self.modify,
-            self.uid if save_uid else '',
+            self.uid,
             self.language,
             self.region,
             ('{%s}' % json_part_wishes) if json_part_wishes != '' else '',

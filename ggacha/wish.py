@@ -1,35 +1,58 @@
 from datetime import datetime
-from typing import List, Dict
+from typing import List, Dict, Union
 
-from ggacha.common.throwable import GenshinBaseException
-from ggacha.common.time import str_to_stamp
+from ggacha.throwable import MultiRegionError, MultiLanguageError, MultiUIDError
 from ggacha.res import WISHES_HISTORY, ITEMS
-
-
-class MultiRegionError(GenshinBaseException):
-    """不允许合并两段不同地区的抽卡记录"""
-
-    def __init__(self, region1, region2):
-        super(MultiRegionError, self).__init__(
-            self.__doc__ + '：%s  %s' % (region1, region2)
-        )
 
 
 class GachaWish:
     def __init__(self,
                  gacha_type: str,
                  record_region: str = '',
-                 allow_multi_region: bool = False,
+                 allow_multi_region: Union[bool, None] = False,
+                 allow_multi_language: Union[bool, None] = False,
+                 allow_multi_uid: Union[bool, None] = False,
                  ) -> None:
         """原神祈愿卡池抽取记录类。
 
         本类是单一一个祈愿卡池的抽取记录的存取载体，
         提供了面向祈愿卡池的抽卡记录合并、排序、聚合、历史查询、保底计算等功能。
 
+        TNF策略：在合并中遇到不同的信息时，``True`` 表示允许覆盖，``False`` 表示抛出错误，
+        ``None`` 表示不覆盖、保留原样。该策略的默认值是 ``False`` 。
+
         :param gacha_type: 祈愿卡池类型。目前是一个整数字符串。
         :param record_region: 游戏地区缩写。默认为空字符串。
-        :param allow_multi_region: 是否允许合并不同地区的抽卡数据。注意：空字符串也视为一种地区。
+        :param allow_multi_region: 是否允许合并不同地区的抽卡数据。
+                                   空字符串也视为一种地区。遵循“TNF策略”。
+        :param allow_multi_language: 是否允许合并用不同语言文字记录的抽卡数据。
+                                     空字符串也视为一种语言文字。遵循“TNF策略”。
+        :param allow_multi_uid: 是否允许合并不同玩家（UID）的数据。
+                                空字符串也视为一个UID。遵循“TNF策略”。
         """
+
+        self.region = record_region
+        """游戏地区的缩写字符串。
+
+        - 游戏地区决定了获取到的抽卡记录的时间的时区，错误的游戏地区会解读出错误的时间。
+        - 详见游戏内祈愿面板的说明。
+        - 当 ``multi_region`` 为 ``True`` 时无效。
+        """
+
+        self.language = ''
+        """抽卡记录数据的语言文字。"""
+
+        self.uid = ''
+        """玩家的游戏账号号码。"""
+
+        self.multi_region = allow_multi_region
+        """是否允许合并不同地区的抽卡数据。空字符串也视为一种地区。遵循“TNF策略”。"""
+
+        self.multi_language = allow_multi_language
+        """是否允许合并用不同语言文字记录的抽卡数据。空字符串也视为一种语言。遵循“TNF策略”。"""
+
+        self.multi_uid = allow_multi_uid
+        """是否允许合并不同玩家（UID）的数据。空字符串也视为一个玩家。遵循“TNF策略”。"""
 
         self.wish_type = gacha_type
         """祈愿卡池的类型（gacha_type）。目前是一个整数字符串。"""
@@ -37,17 +60,7 @@ class GachaWish:
         self.wish_name = ''
         """祈愿卡池的名称。
         
-        考虑到多语言带来的复杂情况，这个值仅在获取抽卡记录时填写，其余时候仅作存储载体使用。
-        """
-
-        self.multi_region = allow_multi_region
-        """允许合并多个游戏地区的数据。若为 ``True`` ，则 ``region`` 字段无效。"""
-
-        self.region = record_region
-        """游戏地区的缩写字符串。
-        
-        游戏地区决定抽卡时间的所在时区，从而能够解读出正确（真实）的抽卡时间。
-        当 ``multi_region`` 字段为 ``True`` 时无效。
+        考虑到多语言带来的复杂情况，这个值仅在获取抽卡记录时被动填充，其余时候仅作存储载体使用。
         """
 
         self.records = list()
@@ -64,22 +77,6 @@ class GachaWish:
         if self.wish_type in WISHES_HISTORY:
             self.histories = WISHES_HISTORY[self.wish_type]
             """当前祈愿卡池的所有历史信息。"""
-
-            # 根据时间字符串添加时间戳，方便各方法利用。
-            for i in range(len(self.histories)):
-                # 这里分别是祈愿卡池的开始时间和结束时间：
-                self.histories[i]['stamp'] = (
-                    str_to_stamp(self.histories[i]['time'][0]),
-                    str_to_stamp(self.histories[i]['time'][1]),
-                )
-
-            # 将项目自定义编号替换为角色/武器的名称。
-            for i in range(len(self.histories)):
-                name_list = list()
-                for item_id in self.histories[i]['items']['up']:
-                    name_list += ITEMS[item_id].values()
-                self.histories[i]['items']['up'] = \
-                    tuple(set(name_list))  # 利用集合的特性去重
 
     def __repr__(self) -> str:
         return '<%s(%s) 记录数量：%i>' % (
@@ -108,31 +105,35 @@ class GachaWish:
 
         def merge(records1, records2) -> List[dict]:
             result = records1 + records2
-            result.sort(key=lambda e: (e['time'], e['RID']))
+            result.sort(key=lambda e: (e['id'], e['time']))
             for i in range(len(result) - 1, 0, -1):
-                if result[i]['RID'] == result[i - 1]['RID'] \
+                if result[i]['id'] == result[i - 1]['id'] \
                         and result[i]['time'] == result[i - 1]['time']:
                     result.pop(i)
             return result
 
         if type(other) is list:
-            # 如果与列表相加，由于缺少地区，所以直接合并得了：
             self.records = merge(self.records, other)
-
         elif type(other) is self.__class__:
-            # 若与本类相加，则需要判断是否允许合并不同地区的数据：
-            # 因为不同地区导出的记录其所记载的时间可能需要用不同的时区才能
-            # 被其他人正确解读，因此需要谨慎处理。
-            if self.multi_region is False:
-                if self.region != other.region:
+            if self.region != other.region:
+                if self.multi_region is True:
+                    self.region = other.region
+                elif self.multi_region is False:
                     raise MultiRegionError(self.region, other.region)
-            print(self.wish_name, other.wish_name)
+            if self.language != other.language:
+                if self.multi_language is True:
+                    self.language = other.language
+                elif self.multi_language is False:
+                    raise MultiLanguageError(self.language, other.language)
+            if self.uid != other.uid:
+                if self.multi_uid is True:
+                    self.uid = other.uid
+                elif self.multi_uid is False:
+                    raise MultiUIDError(self.uid, other.uid)
             if other.wish_name != '':
                 self.wish_name = other.wish_name
             self.records = merge(self.records, other.records)
-
         else:
-            # 不能跟其它类型相加：
             raise TypeError(
                 '仅支持与 list、%s 类型相加，而提供的是 %s' % (
                     self.__class__.__name__, type(other).__name__,
@@ -143,9 +144,9 @@ class GachaWish:
     def sort(self):
         """对当前卡池的抽卡记录进行排序。
 
-        先按 ``time`` 字段排序，当 ``time`` 字段相同时再按 ``RID`` 字段排序。
+        先按 ``time`` 字段排序，当 ``time`` 字段相同时再按 ``id`` 字段排序。
         """
-        self.records.sort(key=lambda e: (e['time'], e['RID']))
+        self.records.sort(key=lambda e: (e['time'], e['id']))
 
     def t2stamp(self):
         """将当前卡池内所有抽卡记录的抽卡时间字符串转换为时间戳（小数），以方便处理。

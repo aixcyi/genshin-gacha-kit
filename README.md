@@ -2,7 +2,7 @@
 
 一个用于获取、存储、载入、合并、过滤、统计原神抽卡数据的Python库。
 
-![版本](https://img.shields.io/badge/版本-v0.1.0-orange.svg) ![开发环境](https://img.shields.io/badge/开发环境-Python%203.7-blue.svg) ![开源许可证](https://img.shields.io/badge/开源许可证-MIT-green.svg) ![Author](https://img.shields.io/badge/作者-砹小翼-purple.svg)
+![版本](https://img.shields.io/badge/版本-v0.2.0-orange.svg) ![开发环境](https://img.shields.io/badge/开发环境-Python%203.7-blue.svg) ![开源许可证](https://img.shields.io/badge/开源许可证-MIT-green.svg) ![Author](https://img.shields.io/badge/作者-砹小翼-purple.svg)
 
 - 码云 ｜ [中文](https://gitee.com/aixcyi/genshin-gacha-kit)  English
 - GitHub ｜ [中文](https://github.com/aixcyi/genshin-gacha-kit)  English
@@ -58,6 +58,8 @@ from ggacha import *
 # 你的代码……
 ```
 
+5. 如果需要获取抽卡记录，那么请确保是在Windows平台运行。
+
 
 
 ## 运行
@@ -95,6 +97,7 @@ _UID仅仅通过杂凑运算得到，对于数据分析而言并无作用，为�
 获取并保存玩家（所有卡池）的抽卡记录：
 
 ```Python
+from datetime import datetime
 from ggacha import GachaPlayer
 
 snapshot = GachaPlayer()
@@ -177,25 +180,28 @@ Python语法允许我们在代码中写文档，这叫做 **文档字符串 (doc
 - `ggacha` 当前项目
   - `GachaPlayer` 所有卡池的抽卡记录类。
   - `GachaWish` 单个卡池的抽卡记录类。
+  - `throwable` 异常包。提供本项目抛出的错误和异常。
   - `common` 公共包。提供通用的、不受游戏版本更新影响的函数。大部分为项目内部开发提供。
   - `ext` 扩展包。提供一些基于核心代码的扩展函数。
   - `res` 常量包。提供可以被代码直接调用的静态资源。
 - `resources` 静态数据文件夹。
-  - `items.json` 部分祈愿物品的信息（包括角色和武器）。
-  - `wishes.json` 部分祈愿卡池的历史信息（目前只有每一期概率提升的哪些角色）。
+  - `items.json`
+  - `wishes.json`
 - `main.py` 对项目的简单应用。
 
 
 
 ## 静态资源
 
-项目源码中附带了关于部分角色信息和祈愿卡池历史信息（每一期抽取概率提升的所有角色/武器），这些信息存放在静态数据文件夹 `resources` 中。为了让包体更加便携，这部分数据也以Python代码的形式存放在了 `ggacha.res` 中，需要的时候直接导入相关常量即可。注意：前者会比后者更加优先更新。
+项目源码中附带了关于部分角色武器信息和祈愿卡池历史信息，这些信息存放在静态数据文件夹 `resources` 中。为了让包体更加便携，这部分数据也以Python代码的形式存放在了 `ggacha.res` 中，需要的时候直接导入相关常量即可，但前者将会优先于后者更新。
 
 
 
-### 编号及编号规则
+### items.json
 
-为方便数据查找和跨语言展示，项目对角色和武器进行了编号。编号规则如下：
+该文件记录了部分祈愿物品的信息，包括角色和武器。
+
+为方便数据查找和跨语言展示，项目对物品进行了编号。编号规则如下：
 
 - 所有编号均使用十六进制整数字符串表示，使用字符串形式记录在文件中。
 - 目前编号只有四位数。以下所说的第几位均以字符串的 **从右到左** 表示。
@@ -215,7 +221,14 @@ Python语法允许我们在代码中写文档，这叫做 **文档字符串 (doc
   - 第二位是副属性：`1`攻击力，`2`防御力，`3`生命值，`4`元素充能效率，`5`元素精通，`6`物理伤害加成，`7`暴击率，`8`暴击伤害。
   - 第一位是序号，用于在星级、类型、副属性均相同时区分，序号取值范围是`0`到`15`。
 - 编号顺序参照游戏图鉴中的排序。
-- 已被编号的角色／武器其编号不会被更改，哪怕编号不符合以上规则。
+
+
+
+### wishes.json
+
+该文件记录了部分祈愿卡池的历史信息（目前只有每一期概率提升的哪些角色）。
+
+其中记录卡池开启时间的字段为 **time** ，但实际上卡池在版本更新完毕即开启，而版本更新完毕的时间并不能确定，因此项目使用了 [第三方抽卡数据集](https://github.com/OneBST/GI_gacha_dataset) 中的时间加以修正。而如果时间被修正过，则原本的预计的时间就会挪到另一字段 **plan** 中。
 
 
 
@@ -258,8 +271,8 @@ Python语法允许我们在代码中写文档，这叫做 **文档字符串 (doc
 
 ## 待办
 
-- [ ] 为 `README.md` 添加英语版本（Python docstring 实在力不从心）。
-- [ ] 为 `GachaWish` 添加历史信息查询和保底计算。
+- [ ] ~~为 `README.md` 添加英语版本（Python docstring 实在力不从心）。~~
+- [x] 为 `GachaWish` 添加历史信息查询和保底计算。
 - [x] 在README中添加对静态资源添的说明，比如祈愿卡池历史信息中的 `plan` 字段。
 - [ ] ~~添加发起 Pull Request 的简易教程。~~
 

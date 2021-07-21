@@ -171,14 +171,6 @@ class GachaPlayer:
                     self.__class__.__name__, type(other).__name__,
                 )
             )
-        if other.uid != '':
-            if self.multi_uid:
-                self.uid = other.uid
-            else:
-                raise MultiUIDError(self.uid, other.uid)
-        for i in range(len(self.wishes)):
-            self.wishes[i] += other.wishes[i]
-
         if self.region != other.region:
             if self.multi_region is True:
                 self.region = other.region
@@ -194,6 +186,9 @@ class GachaPlayer:
                 self.uid = other.uid
             elif self.multi_uid is False:
                 raise MultiUIDError(self.uid, other.uid)
+
+        for i in range(len(self.wishes)):
+            self.wishes[i] += other.wishes[i]
 
         self.modify = max(self.create, self.modify, other.create, other.modify)
         return self

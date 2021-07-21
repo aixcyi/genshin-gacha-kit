@@ -51,4 +51,4 @@ master += branch
 master.dump(path)
 
 # 为完整的抽卡记录生成Excel表格：
-save_as_xlsx(master, './ggr_%s.xlsx' % master.uid)
+save_as_xlsx(master, './ggr_{uid}.xlsx'.format(uid=master.uid))

@@ -1,5 +1,5 @@
-from os.path import isfile
 from datetime import datetime
+from os.path import isfile
 
 from ggacha import GachaPlayer
 from ggacha.ext import save_as_xlsx
@@ -20,24 +20,33 @@ def handler_example(code: int, message: str, **kwargs):
         print('完成，按任意键退出...')
     elif code & 0x000F == 0x000F:
         print(message)
-        print('='*16)
+        print('=' * 16)
     else:
         print(message)
 
 
+tnf_args = {
+    'allow_multi_region': None,
+    'allow_multi_language': None,
+    'allow_multi_uid': None,
+}
+
 # 保存最近六个月的抽卡记录：
 print('今天能获取的最早的抽卡记录的时间是：', GachaPlayer.earliest())
-branch = GachaPlayer(allow_multi_uid=None, handler=handler_example)
+branch = GachaPlayer(handler=handler_example, **tnf_args)
 branch.init()
 branch.collect()
-branch.dump('./raw_%s_%s.json' % (branch.uid, datetime.now().strftime('%Y-%m%d-%H%M%S')))
+branch.dump('./raw_{uid}_{time}.json'.format(
+    uid=branch.uid,
+    time=datetime.now().strftime('%Y-%m%d-%H%M%S'))
+)
 
 # 将获取的记录当作支线，合并到总线中，形成一个完整版本：
-path = 'ggr_%s.json' % branch.uid
+path = './ggr_{uid}.json'.format(uid=branch.uid)
 if not isfile(path):
     with open(path, mode='wb') as f:
         f.write(b'{}')
-master = GachaPlayer(allow_multi_uid=True, file=path)
+master = GachaPlayer(file=path, **tnf_args)
 master += branch
 master.dump(path)
 

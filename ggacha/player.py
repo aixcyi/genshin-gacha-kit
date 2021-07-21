@@ -44,10 +44,10 @@ class GachaPlayer:
     _UTCTIME_F = '%Y-%m-%d %H:%M:%S UTC+0'
     """collector 属性的时间字符串格式。"""
 
-    VERSION = '1.6'
+    VERSION = '2.0'
     """本类适配的最新游戏版本。"""
 
-    SUPPORT_VERSIONS = ['1.4', '1.5', VERSION]
+    SUPPORT_VERSIONS = ['1.4', '1.5', '1.6', VERSION]
     """兼容的游戏版本。意思是可以对这些版本的数据进行合并操作。"""
 
     PROCESS_READ_LOG = 0x0011

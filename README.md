@@ -5,7 +5,7 @@
 ![版本](https://img.shields.io/badge/版本-v0.2.0-orange.svg) ![开发环境](https://img.shields.io/badge/开发环境-Python%203.7-blue.svg) ![开源许可证](https://img.shields.io/badge/开源许可证-MIT-green.svg) ![Author](https://img.shields.io/badge/作者-砹小翼-purple.svg)
 
 - 码云 ｜ [中文](https://gitee.com/aixcyi/genshin-gacha-kit)  English
-- GitHub ｜ [中文](https://github.com/aixcyi/GenshinGachaAnalyserSDK)  English
+- GitHub ｜ [中文](https://github.com/aixcyi/genshin-gacha-kit)  English
 
 
 

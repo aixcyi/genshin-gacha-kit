@@ -17,7 +17,6 @@ def http_get_json(url: str, encoding: str = 'UTF-8'):
 
 
 class GachaPlayer:
-
     _PAGE_SIZE_MAX = 20
     """抽卡记录每页最大数量。"""
 
@@ -363,7 +362,7 @@ class GachaPlayer:
                 message='获取【%s】的记录' % self.wishes[i].wish_name,
                 wish=self.wishes[i].wish_name,
             )
-            # 获取并匿名化处理数据：（因为原始数据是从新到旧的，所以直接逆序遍历）
+            # 获取数据并清除无关紧要的字段：（因为原始数据是从新到旧的，所以直接逆序遍历）
             page = self.collect_one(self.wishes[i].wish_type)[::-1]
             for j in range(len(page)):
                 self.uid = page[j].pop('uid')
@@ -378,7 +377,7 @@ class GachaPlayer:
         """将获取到的抽卡记录保存为紧凑但兼有换行、易于浏览的JSON格式文件。
 
         :param file: 具体的文件地址。
-        :param safe: 是否去除隐私信息，包括uid、language、region和抽卡记录ID。
+        :param safe: 是否去除敏感信息，包括uid、language、region和抽卡记录ID。
         """
         # 这个函数只是为了dump一份格式好看一点的json文件而已，不到万不得已最好不要改动。
         # 缩进采用两个空格。

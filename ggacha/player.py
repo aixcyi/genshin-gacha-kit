@@ -1,4 +1,3 @@
-import os
 from datetime import datetime, timedelta
 from json import loads, load, dumps
 from json.decoder import JSONDecodeError
@@ -145,9 +144,9 @@ class GachaPlayer:
         当获取抽卡记录时会自动调用本函数，以向外界传递操作进度。
         """
 
+        # 从日志里获取到的URL的GET请求参数：
         self._url_part = str()
         self._url_params = dict()
-        # 从日志里获取到的URL的GET请求参数。
 
     def __repr__(self) -> str:
         r_ws = [repr(self.wishes[i]) for i in range(len(self.wishes))]
@@ -206,25 +205,30 @@ class GachaPlayer:
             t[self.wishes[i].wish_type] = self.wishes[i].wish_name
         return t
 
-    def init(self) -> None:
-        """进行初始化以准备获取数据。如有需要，可以再次调用以重新初始化。"""
+    def init(self, log_path: str = '') -> None:
+        """进行初始化以准备获取数据。如有需要，可以再次调用以重新初始化。
+
+        :param log_path: 原神日志文件的地址。若不提供或提供的文件地址并不存在，则自动寻找日志。
+        """
 
         # ################################
         # 查找本地output_log.txt：
-        self._call_handler(self.PROCESS_READ_LOG, '正在查找本地日志')
-        assert 'USERPROFILE' in os.environ, 'Windows 系统变量中没有配置 USERPROFILE'
-        path_t = os.path.join(
-            os.environ['USERPROFILE'],
-            r'AppData\LocalLow\miHoYo\*\output_log.txt'
-        )
-        path_log_cn = path_t.replace('*', '原神')
-        path_log_gl = path_t.replace('*', 'Genshin Impact')
-        if os.path.isfile(path_log_cn):
-            path_log = path_log_cn
-        elif os.path.isfile(path_log_gl):
-            path_log = path_log_gl
+        from os import environ as env
+        from os.path import isfile, join as join_
+
+        if isfile(log_path):
+            path_log = log_path
         else:
-            raise CollectingError('没有找到output_log.txt，请尝试进入原神并浏览一下抽卡记录。')
+            self._call_handler(self.PROCESS_READ_LOG, '正在查找本地日志')
+            assert 'USERPROFILE' in env, 'Windows 系统变量中没有配置 USERPROFILE'
+            log_cn = join_(env['USERPROFILE'], r'AppData\LocalLow\miHoYo\原神\output_log.txt')
+            log_gl = join_(env['USERPROFILE'], r'AppData\LocalLow\miHoYo\Genshin Impact\output_log.txt')
+            if isfile(log_cn):
+                path_log = log_cn
+            elif isfile(log_gl):
+                path_log = log_gl
+            else:
+                raise CollectingError('没有找到output_log.txt，请尝试进入原神并浏览一下抽卡记录。')
 
         # ################################
         # 获取日志中的URL并解析：

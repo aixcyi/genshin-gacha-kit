@@ -16,25 +16,6 @@ def http_get_json(url: str, encoding: str = 'UTF-8'):
     return loads(get(url).content.decode(encoding))
 
 
-# 导出的数据的模板：
-# （用这种方式是为了导出紧凑兼易读的JSON格式）
-# （放在这里是为了保证缩进正确）
-JSON_DUMP_TEMPLATE = '''{
-  "collector": {
-    "version": "%s",
-    "create": "%s",
-    "modify": "%s"
-  },
-  "infos": {
-    "uid": "%s",
-    "lang": "%s",
-    "region": "%s"
-  },
-  "wishes": %s,
-  "records": %s
-}'''
-
-
 class GachaPlayer:
 
     _PAGE_SIZE_MAX = 20
@@ -200,10 +181,7 @@ class GachaPlayer:
 
     def map_wishes(self) -> dict:
         """获取所有祈愿卡池 gacha_type 与 wish_name 的对照表。"""
-        t = dict()
-        for i in range(len(self.wishes)):
-            t[self.wishes[i].wish_type] = self.wishes[i].wish_name
-        return t
+        return {str(wish.wish_type): wish.wish_name for wish in self.wishes}
 
     def init(self, log_path: str = '') -> None:
         """进行初始化以准备获取数据。如有需要，可以再次调用以重新初始化。
@@ -396,57 +374,42 @@ class GachaPlayer:
             self.wishes[i].records = page
         self._call_handler(self.PROCESS_END_DOWNLOAD, '记录获取完毕')
 
-    def dump(self, file: str) -> None:
+    def dump(self, file: str, safe: bool = False) -> None:
         """将获取到的抽卡记录保存为紧凑但兼有换行、易于浏览的JSON格式文件。
 
         :param file: 具体的文件地址。
+        :param safe: 是否去除隐私信息，包括uid、language、region和抽卡记录ID。
         """
-
-        # json_part_wishes = dumps(self.map_wishes(), ensure_ascii=False)
-
         # 这个函数只是为了dump一份格式好看一点的json文件而已，不到万不得已最好不要改动。
         # 缩进采用两个空格。
-        # 用[:-2]是为了去掉多余的逗号以符合JSON语法。
-
-        # ################################
-        json_part_wishes = ''
-        wishes = self.map_wishes()
-        for item in wishes:
-            json_part_wishes += '    "{key}": "{value}",\n'.format(
-                key=item,
-                value=wishes[item],
-            )
-        if json_part_wishes != '':
-            json_part_wishes = '\n' + json_part_wishes[:-2] + '\n  '
-
-        # ################################
-        json_part_records = ''
-        for i in range(len(self.wishes)):
-            temp = ''
-            for record in self.wishes[i].records:
-                temp += '      ' + dumps(record, ensure_ascii=False) + ',\n'
+        obj = {
+            "collector": {
+                "version": GachaPlayer.VERSION,
+                "create": self.create,
+                "modify": self.modify,
+            },
+            "infos": {
+                "uid": self.uid,
+                "lang": self.language,
+                "region": self.region,
+            },
+            "wishes": self.map_wishes(),
+            "records": {wish.wish_type: f'@({wish.wish_type})' for wish in self.wishes},
+        }
+        if safe:
+            obj.pop('infos')
+        result = dumps(obj, ensure_ascii=False, indent=2)
+        for wish in self.wishes:
+            if len(wish.records) != 0:
+                raw = dumps(wish.records, ensure_ascii=False)
+                raw = raw.replace('}, {', '},\n      {')
+                raw = raw.replace('[', '[\n      ')
+                raw = raw.replace(']', '\n    ]')
             else:
-                if len(temp) > 0:
-                    temp = '    "%s": [\n%s\n    ],\n' % (self.wishes[i].wish_type, temp[:-2])
-                else:
-                    temp = '    "%s": [],\n' % self.wishes[i].wish_type
-            json_part_records += temp
-        if len(json_part_records) > 0:
-            json_part_records = '\n' + json_part_records[:-2] + '\n  '
-
-        # ################################
-        json_content = JSON_DUMP_TEMPLATE % (
-            GachaPlayer.VERSION,
-            self.create,
-            self.modify,
-            self.uid,
-            self.language,
-            self.region,
-            ('{%s}' % json_part_wishes) if json_part_wishes != '' else '',
-            ('{%s}' % json_part_records) if json_part_records != '' else '',
-        )
+                raw = '[]'
+            result = result.replace(f'"@({wish.wish_type})"', raw)
         with open(file, 'w', encoding='UTF-8') as f:
-            f.write(json_content)
+            f.write(result)
 
     def load(self, file: str) -> str:
         """从JSON格式文件中载入原神祈愿抽卡记录，并覆盖原有的数据。

@@ -211,7 +211,7 @@ class GachaPlayer:
         # 获取日志中的URL并解析：
         self._call_handler(self.PROCESS_PARSE_LOG, '正在解析日志中的URL')
         url = ''
-        with open(path_log, 'r', encoding='GBK') as f:
+        with open(path_log, 'r', encoding='UTF-8') as f:
             for line in f.readlines()[::-1]:
                 if line.startswith('OnGetWebViewPageFinish:'):
                     url = line

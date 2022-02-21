@@ -36,13 +36,13 @@ print('今天能获取的最早的抽卡记录的时间是：', GachaPlayer.earl
 branch = GachaPlayer(handler=handler_example, **tnf_args)
 branch.init()
 branch.collect()
-branch.dump('./raw_{uid}_{time}.json'.format(
+branch.dump('./raw/raw_{uid}_{time}.json'.format(
     uid=branch.uid,
     time=datetime.now().strftime('%Y-%m%d-%H%M%S'))
 )
 
 # 将获取的记录当作支线，合并到总线中，形成一个完整版本：
-path = './ggr_{uid}.json'.format(uid=branch.uid)
+path = './raw/ggr_{uid}.json'.format(uid=branch.uid)
 if not isfile(path):
     with open(path, mode='wb') as f:
         f.write(b'{}')
@@ -51,4 +51,4 @@ master += branch
 master.dump(path)
 
 # 为完整的抽卡记录生成Excel表格：
-save_as_xlsx(master, './ggr_{uid}.xlsx'.format(uid=master.uid))
+save_as_xlsx(master, './raw/ggr_{uid}.xlsx'.format(uid=master.uid))

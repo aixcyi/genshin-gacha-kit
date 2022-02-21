@@ -1,11 +1,15 @@
 # git
 /.git
 
+# Python
+__pycache__/
+/venv
+
 # JetBrains IDE
 /.idea
-__pycache__/
 
 # The Project
+/raw/*
 /test*
 /*.json
 /*.xls*

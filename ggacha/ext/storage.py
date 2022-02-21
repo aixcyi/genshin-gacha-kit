@@ -69,6 +69,7 @@ def save_as_xlsx(obj: GachaPlayer, file: str):
         sheet.set_column("B:B", 14)
         sheet.set_column("C:C", 7)
         sheet.set_column("D:D", 7)
+        sheet.set_column("E:E", 9)
         sheet.set_column("F:F", 14)
         sheet.freeze_panes(1, 0)
     book.close()
